@@ -6,8 +6,17 @@
   gobject-introspection,
   makeDesktopItem,
   wrapGAppsHook3,
+  mpv-unwrapped,
 }:
 
+let
+  # Override python3Packages.mpv so libmpv.so is compiled with VapourSynth support
+  mpvWithVapoursynth = python3Packages.mpv.override {
+    mpv = mpv-unwrapped.override {
+      vapoursynthSupport = true;
+    };
+  };
+in
 python3Packages.buildPythonApplication rec {
   pname = "jellyfin-mpv-shim";
   version = "3.0.0";
@@ -30,9 +39,10 @@ python3Packages.buildPythonApplication rec {
 
   dependencies = with python3Packages; [
     jellyfin-apiclient-python
-    mpv
+    mpvWithVapoursynth
     python-mpv-jsonipc
     requests
+    vapoursynth
 
     # gui dependencies
     pillow
@@ -46,7 +56,7 @@ python3Packages.buildPythonApplication rec {
     export HOME=$TMPDIR
 
     # remove jellyfin_mpv_shim/win_utils.py:
-    #   ModuleNotFoundError: No module named 'win32gui'
+    # ModuleNotFoundError: No module named 'win32gui'
     rm jellyfin_mpv_shim/win_utils.py
   '';
 
